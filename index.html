@@ -175,8 +175,10 @@
                 this.rotationY  = 0.0;
                 this.rotationZ  = 0.0;
 
+                this.palme = false;
                 this.lightX = 19;
                 this.tannenH = 5.5;
+                this.blattRotation = 0;
                 this.Ringe = 10;
                 this.tannenD = 5;
                 this.lightY = 47;
@@ -242,7 +244,24 @@
                     astRingGruppen[x].position.y =value*x/3;
                 };
             });
-
+            datGUI.add(guiControls, 'palme').onChange(function(value){
+                for(var x = 0; x<astRingGruppen.length;x++){
+                    for(var i = 0; i<12;i++) {
+                        astRingGruppen[x].children[i].rotation.z = 0+x*0.01;
+                    }
+                    //yS = astRingGruppen[x].position.y;
+                    //astRingGruppen[x].position.y -= yS*x;
+                };
+            });
+            datGUI.add(guiControls, 'blattRotation',-1,1).onChange(function(value){
+                for(var x = 0; x<astRingGruppen.length;x++){
+                    for(var i = 0; i<12;i++) {
+                        astRingGruppen[x].children[i].rotation.z = value;
+                    }
+                    //yS = astRingGruppen[x].position.y;
+                    //astRingGruppen[x].position.y -= yS*x;
+                };
+            });
             datGUI.add(guiControls, 'Ringe',1, 30).onChange(function(value){
                 tannenH = 5.5;
                 var rotationsWertZ =-0.5;
