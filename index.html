@@ -234,7 +234,7 @@
 
             datGUI.add(guiControls, 'tannenH',0.01, 9).onChange(function(value){
 
-
+                tannenH = value;
                 for(var x = 0; x<astRingGruppen.length;x++){
                     //var selectedObject = scene.getObjectByName("ringGruppe"+x);
                    // scene.remove( selectedObject );
@@ -244,6 +244,7 @@
             });
 
             datGUI.add(guiControls, 'Ringe',1, 30).onChange(function(value){
+                tannenH = 5.5;
                 var rotationsWertZ =-0.5;
                 var rotationsWert = (1.5/Math.round(value));
                 console.log("Value: "+Math.round(value))
@@ -260,9 +261,10 @@
                     group = new THREE.Object3D();//create an empty container
                     rotationsWertZ += rotationsWert; // startet von -0.5 und geht bis 1 - zBs. 6 Ringe? => 1.5/6 = 0.25 => Der erste Ring ist bei -0.25
 
+                    var s = 0.1-(0.1/value)*j;
                     for(var i = 0; i<   12; i++) { //12 Äste an einem Ring
                         var newAst = ast.clone();
-                        newAst.scale.set(0.3,0.3,0.3); //grundskalierung auf 0.3
+                        //newAst.scale.set(0.3,0.3,0.3); //grundskalierung auf 0.3
 
                         newAst.rotation.y +=0.5*i; // 12 Äste im Abstand von 0.5 auf 360° im Kreis verteilen.
                         // Durch ausprobieren herausgefunden: Die Beugung der einzelnen Äste sehen im Bereich von -0.5 bis 1 gut aus. Absolutwert von -0.5 bis 1 = 1.5
@@ -270,16 +272,20 @@
                         console.log("Rotationswert: "+rotationsWertZ)
                         // newQueen.position.y = j*2;
 
-                        var s = Math.abs(0.1-(j*0.01));
+                       // var s = Math.abs(0.1-(j*0.01));
+
                        // console.log("s: "+j*2);
-                        console.log("Grosse: "+s)
+
                         newAst.scale.set(s,s,s);
 
                         group.add( newAst );//add a mesh with geometry to it
-                        group.position.y = j*2;
                         // scene.add( group );//when done, add the group to the scene
                         // scene.add(newQueen);
                     }
+                    group.position.y = j*tannenH/value/.9;  // Damhoon hier gibt es noch "probleme"
+
+                    console.log("Grosse: "+s)
+
                     group.name = "ringGruppe"+j;
                     astRingGruppen.push(group);
                     scene.add( group );
