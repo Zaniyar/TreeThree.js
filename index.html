@@ -24,6 +24,10 @@
 <script>
     $(function(){
 
+
+        Physijs.scripts.worker = 'physijs_worker.js';
+        Physijs.scripts.ammo = 'ammo.js';
+
         var scene, camera, renderer;
         var controls, guiControls, datGUI;
         var stats;
@@ -70,16 +74,23 @@
 
 
         });
-        loader.load('ast_final.dae', function (collada){
+        //loader.load('ast_final.dae', function (collada){
+        loader.load('ast_ball.dae', function (collada){
             scene = new THREE.Scene();
             dae2 = collada.scene;
             dae2.scale.x = dae.scale.y = dae.scale.z = 3;
 
             console.log(dae2);
+            ast1 = new THREE.Object3D();//create an empty container
 
             dae2.traverse(function (child){
-                if (child.colladaId == "ast"){
-                    ast = child;
+                if (child.colladaId == "kugel"){
+                    kugel = child;
+                    console.log(kugel);
+                }else if (child.colladaId == "ast"){
+                    ast1 = child;
+
+                    console.log("ast1:");
 
                     /*
                     for (var i = 0; i < 10; i++) {
@@ -95,8 +106,15 @@
                     */
 
                 }
+
+                //ast = dae2;
             });
-            //ast = dae2.children[2];
+
+            ast = new THREE.Object3D();//create an empty container
+            ast.add(ast1);
+            ast.add(kugel);
+            console.log(ast);
+           // ast = dae2.children[0];
             dae2.updateMatrix();
             init();
             animate();
@@ -136,7 +154,7 @@
             scene.add(newQueen);
 
             astRingGruppen = [];
-//            setMaterial(ast, new THREE.MeshBasicMaterial({color: 0x00ff00})); //grüne farbe
+            var s = 0;
             for(var j = 0; j<   10; j++){
                 group = new THREE.Object3D();//create an empty container
 
@@ -149,7 +167,8 @@
                     newQueen.rotation.z = 0.05*j;
                    // newQueen.position.y = j*2;
 
-                    var s = 0.1-(j*0.01);
+                   // var s = 0.1-(j*0.1);
+                    s = 0.1-(j*1.2);
                     console.log("s: "+j*2);
                     newQueen.scale.set(s,s,s);
 
@@ -174,7 +193,7 @@
                 this.rotationX  = 0.0;
                 this.rotationY  = 0.0;
                 this.rotationZ  = 0.0;
-
+                this.color0 = "#ffae23"; // CSS string
                 this.palme = false;
                 this.lightX = 19;
                 this.tannenH = 5.5;
@@ -211,7 +230,28 @@
             spotLight.shadowCameraVisible = guiControls.shadowCameraVisible;
             spotLight.shadowBias = guiControls.shadowBias;
             spotLight.shadowDarkness = guiControls.shadowDarkness;
-            scene.add(spotLight);
+          //  scene.add(spotLight);
+
+            // ambient light
+            am_light = new THREE.AmbientLight( 0x444444 );
+            scene.add( am_light );
+
+            // directional light
+            dir_light = new THREE.DirectionalLight( 0xFFFFFF );
+            dir_light.position.set( 20, 30, -5 );
+            dir_light.target.position.copy( scene.position );
+            dir_light.castShadow = true;
+            dir_light.shadowCameraLeft = -30;
+            dir_light.shadowCameraTop = -30;
+            dir_light.shadowCameraRight = 30;
+            dir_light.shadowCameraBottom = 30;
+            dir_light.shadowCameraNear = 20;
+            dir_light.shadowCameraFar = 200;
+            dir_light.shadowBias = -.001
+            dir_light.shadowMapWidth = dir_light.shadowMapHeight = 2048;
+            dir_light.shadowDarkness = .5;
+            scene.add( dir_light );
+
 
             // FLOOR
             var floorTexture = new THREE.ImageUtils.loadTexture( 'checkerboard.jpg' );
@@ -230,6 +270,12 @@
 
             datGUI.add(guiControls, 'lightX',-60,180);
            // datGUI.add(guiControls, 'tannenH',1,9);
+            datGUI.add(guiControls, 'color0').onChange(function(value){
+                for(var x = 0; x<astRingGruppen.length;x++){
+                    setMaterial(astRingGruppen[x], new THREE.MeshBasicMaterial({color: value})); //grüne farbe
+                };
+
+            });
             datGUI.add(guiControls, 'tannenD',0,20);
             datGUI.add(guiControls, 'lightY',0,180);
             datGUI.add(guiControls, 'lightZ',-60,180);
@@ -247,7 +293,7 @@
             datGUI.add(guiControls, 'palme').onChange(function(value){
                 for(var x = 0; x<astRingGruppen.length;x++){
                     for(var i = 0; i<12;i++) {
-                        astRingGruppen[x].children[i].rotation.z = 0+x*0.01;
+                        astRingGruppen[x].children[i].rotation.z = 0+x*-0.01;
                     }
                     //yS = astRingGruppen[x].position.y;
                     //astRingGruppen[x].position.y -= yS*x;
@@ -280,7 +326,8 @@
                     group = new THREE.Object3D();//create an empty container
                     rotationsWertZ += rotationsWert; // startet von -0.5 und geht bis 1 - zBs. 6 Ringe? => 1.5/6 = 0.25 => Der erste Ring ist bei -0.25
 
-                    var s = 0.1-(0.1/value)*j;
+                    //var s = 0.1-(0.1/value)*j;
+                    s = value/j;
                     for(var i = 0; i<   12; i++) { //12 Äste an einem Ring
                         var newAst = ast.clone();
                         //newAst.scale.set(0.3,0.3,0.3); //grundskalierung auf 0.3
