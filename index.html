@@ -1,6 +1,7 @@
 <title> Our WebGL Skeleton Framework</title>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+
 <script src="//cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js"></script>
 <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/libs/stats.min.js"></script>
@@ -24,10 +25,7 @@
 <script>
     $(function(){
 
-
-        Physijs.scripts.worker = 'physijs_worker.js';
-        Physijs.scripts.ammo = 'ammo.js';
-
+         particles = [];
         var scene, camera, renderer;
         var controls, guiControls, datGUI;
         var stats;
@@ -195,13 +193,13 @@
                 this.rotationZ  = 0.0;
                 this.color0 = "#ffae23"; // CSS string
                 this.palme = false;
-                this.lightX = 19;
+                this.lightX = -50;
                 this.tannenH = 5.5;
                 this.blattRotation = 0;
                 this.Ringe = 10;
                 this.tannenD = 5;
-                this.lightY = 47;
-                this.lightZ = 19;
+                this.lightY = 20;
+                this.lightZ = 30;
                 this.intensity = 2.5;
                 this.distance = 373;
                 this.angle = 1.6;
@@ -219,7 +217,7 @@
             /*adds spot light with starting parameters*/
             spotLight = new THREE.SpotLight(0xffffff);
             spotLight.castShadow = true;
-            spotLight.position.set (20, 35, 40);
+            spotLight.position.set (-60, 20, 30);
             spotLight.intensity = guiControls.intensity;
             spotLight.distance = guiControls.distance;
             spotLight.angle = guiControls.angle;
@@ -230,7 +228,7 @@
             spotLight.shadowCameraVisible = guiControls.shadowCameraVisible;
             spotLight.shadowBias = guiControls.shadowBias;
             spotLight.shadowDarkness = guiControls.shadowDarkness;
-          //  scene.add(spotLight);
+            scene.add(spotLight);
 
             // ambient light
             am_light = new THREE.AmbientLight( 0x444444 );
@@ -402,11 +400,212 @@
             stats.domElement.style.left = '0px';
             stats.domElement.style.top = '0px';
             $("#webGL-container").append( stats.domElement );
+
+            //geschenke
+            var geometry = new THREE.BoxGeometry( 4, 4, 4 );
+            var materialPapier = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture("reddots.jpg")});
+            var geschenk = new THREE.Mesh( geometry, materialPapier );
+            geschenk.position.set(7.6,-13,2); //rechts unten vorne
+            scene.add( geschenk );
+            // rotes tuch:
+            var geometry = new THREE.PlaneGeometry( 20, 20, 32 );
+            var material = new THREE.MeshBasicMaterial( {color: 0xff3333, side: THREE.DoubleSide} );
+            //
+            var plane = new THREE.Mesh( geometry, material );
+            plane.rotation.z = 0.7853982; //45°
+            plane.rotation.x = 1.5707963; // 90°
+            plane.position.y = -14.4;
+            scene.add( plane );
+            //wand:
+            var geometry = new THREE.BoxGeometry( 150, 50, 2 );
+            var material = new THREE.MeshBasicMaterial( {color: 0xEFEFEF} );
+            var cube = new THREE.Mesh( geometry, material );
+            cube.position.set(-0.25,10,-17 );
+            scene.add(cube);
+            createTV();
+            createKamin();
+            makeSnow();
+            createFire();
+        }
+
+        function createKamin(){
+            var geometry = new THREE.BoxGeometry( 2, 14, 2 );
+            var material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture("holz.jpg")});
+            linkesHolz = new THREE.Mesh( geometry, material );
+            rechtesHolz = new THREE.Mesh( geometry, material );
+            geometry = new THREE.BoxGeometry( 27, 2, 2 );
+            oberesHolz = new THREE.Mesh( geometry, material );
+            rechtesHolz.position.set(25,0,0);
+            oberesHolz.position.set(12.5,7,0);
+            var kamin = new THREE.Object3D();
+            kamin.add(linkesHolz);
+            kamin.add(rechtesHolz);
+            kamin.add(oberesHolz);
+
+            kamin.position.set(15,-8,-15);
+            scene.add(kamin);
+        }
+        function createTV(){
+
+            // create the video element
+            video = document.createElement( 'video' );
+            // video.id = 'video';
+            // video.type = ' video/ogg; codecs="theora, vorbis" ';
+            video.src = "sintel.ogv";
+            video.load(); // must call after setting/changing source
+            video.play();
+
+            if (typeof video.loop == 'boolean') { // loop supported
+                video.loop = true;
+            } else { // loop property not supported
+                video.addEventListener('ended', function () {
+                    this.currentTime = 0;
+                    this.play();
+                }, false);
+            }
+            videoImage = document.createElement( 'canvas' );
+            videoImage.width = 480;
+            videoImage.height = 204;
+
+            videoImageContext = videoImage.getContext( '2d' );
+            // background color if no video present
+            videoImageContext.fillStyle = '#000000';
+            videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
+
+            videoTexture = new THREE.Texture( videoImage );
+            videoTexture.minFilter = THREE.LinearFilter;
+            videoTexture.magFilter = THREE.LinearFilter;
+
+            var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
+            // the geometry on which the movie will be displayed;
+            // 		movie image will be scaled to fit these dimensions.
+            var movieGeometry = new THREE.PlaneGeometry( 30, 12.75, 4, 4 );
+            var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+            movieScreen.position.set(0,0,0);
+          //  scene.add(movieScreen);
+            //rotes LED
+            var geometry = new THREE.SphereGeometry( .2, 32, 32 );
+            var material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+            var sphere = new THREE.Mesh( geometry, material );
+            sphere.position.set(15,-7,0);
+            //fernseh rand
+            var geometry = new THREE.BoxGeometry( 32, 14.75, 1 );
+            var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+            var cube = new THREE.Mesh( geometry, material );
+            cube.position.set(-0.25,-0.25,-0.8);
+
+            var tv = new THREE.Object3D();
+            tv.position.set(-25,5,-15);
+           // scene.add( cube );
+            tv.add(movieScreen);
+            tv.add(cube);
+            tv.add(sphere);
+            scene.add(tv);
+            if ( video.readyState === video.HAVE_ENOUGH_DATA )
+            {
+                videoImageContext.drawImage( video, 0, 0 );
+                if ( videoTexture )
+                    videoTexture.needsUpdate = true;
+            }
+
+        }
+
+        function createFire(){
+
+            video2 = document.createElement( 'video' );
+            // video.id = 'video';
+            // video.type = ' video/ogg; codecs="theora, vorbis" ';
+            video2.src = "kaminfeuer.ogv";
+            video2.load(); // must call after setting/changing source
+            video2.play();
+
+            if (typeof video2.loop == 'boolean') { // loop supported
+                video2.loop = true;
+            } else { // loop property not supported
+                video2.addEventListener('ended', function () {
+                    this.currentTime = 0;
+                    this.play();
+                }, false);
+            }
+            videoImage2 = document.createElement( 'canvas' );
+            videoImage2.width = 340;
+            videoImage2.height = 204;
+
+            videoImageContext2 = videoImage2.getContext( '2d' );
+            // background color if no video present
+            videoImageContext2.fillStyle = '#000000';
+            videoImageContext2.fillRect( 0, 0, videoImage2.width, videoImage2.height );
+
+            videoTexture2 = new THREE.Texture( videoImage2 );
+            videoTexture2.minFilter = THREE.LinearFilter;
+            videoTexture2.magFilter = THREE.LinearFilter;
+
+            var movieMaterial2 = new THREE.MeshBasicMaterial( { map: videoTexture2, overdraw: true, side:THREE.DoubleSide } );
+            // the geometry on which the movie will be displayed;
+            // 		movie image will be scaled to fit these dimensions.
+            var movieGeometry2 = new THREE.PlaneGeometry( 24, 12.75, 4, 4 );
+            var movieScreen2 = new THREE.Mesh( movieGeometry2, movieMaterial2 );
+            movieScreen2.position.set(0,0,0);
+          //  scene.add(movieScreen);
+
+
+             tv2 = new THREE.Object3D();
+            tv2.position.set(27,-8,-15);
+           // scene.add( cube );
+            tv2.add(movieScreen2);
+
+            scene.add(tv2);
+            if ( video2.readyState === video2.HAVE_ENOUGH_DATA )
+            {
+                videoImageContext2.drawImage( video2, 0, 0 );
+                if ( videoTexture2 )
+                    videoTexture2.needsUpdate = true;
+            }
+
+        }
+
+
+        function makeSnow(){
+
+            var particleImage = new Image();//THREE.ImageUtils.loadTexture( "snow.png" );
+            particleImage.src = 'snow.png';
+            var material = new THREE.ParticleBasicMaterial( { transparent:true, opacity:0.5, color:0xffffff } );
+           // var material = new THREE.ParticleBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'snow.png' ), transparent: true, opacity: 0.5, color: 0xFF0000 });
+
+            for (var i = 0; i < 500; i++) {
+
+               // particle = new Particle3D( material);
+                var radius = 0.4;
+                var segments = 5;
+
+                var circleGeometry = new THREE.CircleGeometry( radius, segments );
+                var particle = new THREE.Mesh( circleGeometry, material );
+
+                particle.position.x = Math.random() * 200 - 100;
+                particle.position.y = Math.random() * 200 - 100;
+                particle.position.z = Math.random() * 200 - 100;
+                particle.scale.x = particle.scale.y =  1;
+                scene.add( particle );
+
+                particles.push(particle);
+            }
         }
 
 
         function render() {
+            video2.play();
+            video.play();
+
+            var randLightPos = Math.random() * (180 - (-60)) + (-60);
+            spotLight.position.x += Math.random() * (180 - (-60)) + (-60);
+            if(spotLight.position.x >180){
+                spotLight.position.x = randLightPos;
+            }else if (spotLight.position.x < -60){
+                spotLight.position.x = randLightPos;
+            }
+            console.log(Math.random() * (180 - (-60)) + (-60))
             for(var j = 0; j<  astRingGruppen.length; j++){
+
                 if(j%2){
                     astRingGruppen[j].rotation.y -=.01;
                 }else{
@@ -426,16 +625,65 @@
 
             dae.scale.y = guiControls.tannenH;
             dae.scale.x=dae.scale.z = guiControls.tannenD;
-            spotLight.position.x = guiControls.lightX;
+           /* spotLight.position.x = guiControls.lightX;
             spotLight.position.y = guiControls.lightY;
             spotLight.position.z = guiControls.lightZ;
+            */
+
+            if ( video.readyState === video.HAVE_ENOUGH_DATA )
+            {
+                videoImageContext.drawImage( video, 0, 0 );
+                if ( videoTexture )
+                    videoTexture.needsUpdate = true;
+            }
+
+            if ( video2.readyState === video2.HAVE_ENOUGH_DATA )
+            {
+                videoImageContext2.drawImage( video2, 0, 0 );
+                if ( videoTexture2 )
+                    videoTexture2.needsUpdate = true;
+            }
+
+
+            for(var i = 0; i<particles.length; i++)
+            {
+
+                particles[i].position.y -=0.5;
+                //console.log("i: "+i);
+
+                //particle.updatePhysics();
+
+               particles[i].rotation.z +=0.1;
+
+
+                    if(particles[i].position.y<-100) {
+                        particles[i].position.y+=200
+                    }
+                    if(particles[i].position.x>100){
+                        particles[i].position.x-=200;
+                    }else if(particles[i].position.x<-100) {
+                        particles[i].position.x += 200;
+                    }
+                    if(particles[i].position.z>100) {
+                        particles[i].position.z-=200;
+                    }else if(particles[i].position.z<-100) {
+                        particles[i].position.z+=200;
+                    }
+
+            }
 
         }
 
         function animate(){
+
+
+
+
+
             requestAnimationFrame(animate);
             render();
             stats.update();
+
             renderer.render(scene, camera);
         }
     });
